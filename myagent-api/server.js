@@ -17,6 +17,30 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date() });
 });
 
+// DEBUG ROUTES — remove before submitting to Devpost
+app.get('/debug/nimble', async (req, res) => {
+  const { fetchWebResults } = require('./src/services/nimbleService');
+  try {
+    const results = await fetchWebResults(req.query.q || 'AI tools 2026');
+    res.json({ ok: true, count: results.length, results });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/debug/groq', async (req, res) => {
+  const { generateBriefing } = require('./src/services/claudeService');
+  try {
+    const fakeResults = [
+      { title: 'Test article', url: 'https://example.com', snippet: 'This is a test snippet about AI tools.' }
+    ];
+    const briefing = await generateBriefing('test topic', fakeResults);
+    res.json({ ok: true, briefing });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.use("/topics", topicsRouter);
 app.use("/briefings", briefingsRouter);
 

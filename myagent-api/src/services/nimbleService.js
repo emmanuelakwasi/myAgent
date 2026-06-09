@@ -1,44 +1,60 @@
-// This service is the eyes of the agent. It sends a query to Nimble and gets
-// back real content from live web pages. The results are raw material — not yet
-// readable by a human. That's Claude's job in the next service.
+// This service is the eyes of the agent.
+// It sends a query to Nimble and returns real content from live web pages.
+// Falls back to Google News RSS if Nimble times out, so the demo never stalls.
 
-const axios = require("axios");
+const axios = require('axios');
+const Parser = require('rss-parser');
+
+const rssParser = new Parser({ timeout: 10000 });
+
+async function fetchFromNimble(query) {
+  // Nimble token-based keys use Bearer auth, not Basic auth.
+  const response = await axios.post(
+    'https://api.webit.live/api/v1/realtime/serp',
+    { search_engine: 'google_search', query, parse: true, country: 'US' },
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.NIMBLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 40000,
+    }
+  );
+
+  const entities = response.data?.parsing?.entities;
+  if (!entities) throw new Error('Nimble returned unexpected response shape');
+
+  const organicResults = entities.OrganicResult || [];
+  console.log('Nimble returned', organicResults.length, 'organic results');
+
+  return organicResults.slice(0, 8).map(e => ({
+    title: e.title || 'No title',
+    url: e.url || '',
+    snippet: e.snippet || e.description || '',
+  }));
+}
+
+async function fetchFromRSS(query) {
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+  const feed = await rssParser.parseURL(url);
+  console.log('RSS fallback returned', feed.items.length, 'results');
+  return feed.items.slice(0, 8).map(item => ({
+    title: item.title || '',
+    url: item.link || '',
+    snippet: item.contentSnippet || item.title || '',
+  }));
+}
 
 async function fetchWebResults(query) {
-  // Nimble uses HTTP Basic auth where the API key is the username and the
-  // password is intentionally empty. The colon separates username:password,
-  // so the string to encode is "<key>:" (key, colon, nothing after it).
-  // Buffer.from(...).toString("base64") is the standard Node way to Base64-encode
-  // without pulling in an extra dependency.
-  const credentials = Buffer.from(`${process.env.NIMBLE_API_KEY}:`).toString("base64");
-
   try {
-    const response = await axios.post(
-      "https://api.webit.live/api/v1/realtime/serp",
-      {
-        search_engine: "google_search",
-        query,
-        parse: true,
-        country: "US",
-      },
-      {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const entities = response.data?.parsing?.entities ?? [];
-
-    return entities.slice(0, 8).map((entity) => ({
-      title: entity.title,
-      url: entity.url,
-      snippet: entity.snippet,
-    }));
-  } catch (error) {
-    console.error("Nimble fetch failed:", error);
-    throw error;
+    return await fetchFromNimble(query);
+  } catch (err) {
+    if (err.response) {
+      console.error('Nimble HTTP error:', err.response.status, JSON.stringify(err.response.data));
+    } else {
+      console.warn('Nimble unavailable, falling back to RSS:', err.message);
+    }
+    return await fetchFromRSS(query);
   }
 }
 
