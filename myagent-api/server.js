@@ -2,15 +2,28 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const topicsRouter = require("./src/routes/topics");
+const briefingsRouter = require("./src/routes/briefings");
+const requestLogger = require("./src/middleware/logger");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date() });
+});
+
+app.use("/topics", topicsRouter);
+app.use("/briefings", briefingsRouter);
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status ?? 500).json({ error: err.message });
 });
 
 app.listen(PORT, () => {
