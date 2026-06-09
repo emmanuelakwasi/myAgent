@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getTopics } from '../services/api';
 import TopicCard from '../components/TopicCard';
 import AddTopicModal from '../components/AddTopicModal';
@@ -16,6 +16,7 @@ const DEMO_TOPICS = [
 
 export default function Dashboard() {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,9 +49,9 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
       <header className="topbar">
-        <span className="topbar-brand">
+        <button className="topbar-brand" onClick={() => navigate('/')}>
           myagent<span className="accent">.fyi</span>
-        </span>
+        </button>
         <div className="topbar-right">
           <span className="topbar-user">{userId}</span>
           {/* Demo mode only. Remove before shipping to production. */}
