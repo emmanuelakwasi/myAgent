@@ -12,6 +12,19 @@ router.post("/", async (req, res) => {
     }
   }
 
+  // Ensure the user row exists before inserting the topic — topics.user_id
+  // is a FK to users.id, so the insert would fail with a constraint violation
+  // if the user has never been seen before. ignoreDuplicates avoids a no-op error
+  // on subsequent calls for the same user.
+  const { error: userError } = await supabase
+    .from("users")
+    .upsert({ id: user_id.trim() }, { onConflict: "id", ignoreDuplicates: true });
+
+  if (userError) {
+    console.error("Failed to upsert user:", userError);
+    return res.status(500).json({ error: "Failed to resolve user" });
+  }
+
   const { data, error } = await supabase
     .from("topics")
     .insert({ user_id: user_id.trim(), label: label.trim(), query: query.trim() })

@@ -5,7 +5,7 @@ const { fetchWebResults } = require("../services/nimbleService");
 const { generateBriefing } = require("../services/claudeService");
 
 // POST /briefings/run
-router.post("/run", async (req, res) => {
+router.post("/run", async (req, res, next) => {
   const { topic_id } = req.body;
 
   if (!topic_id || typeof topic_id !== "string" || !topic_id.trim()) {
@@ -34,14 +34,25 @@ router.post("/run", async (req, res) => {
   const seenUrls = lastBriefing?.seen_urls ?? [];
   const seenSet = new Set(seenUrls);
 
-  const results = await fetchWebResults(topic.query);
+  let results;
+  try {
+    results = await fetchWebResults(topic.query);
+  } catch (err) {
+    return next(err);
+  }
+
   const filteredResults = results.filter((r) => !seenSet.has(r.url));
 
   if (filteredResults.length === 0) {
     return res.json({ briefing: null, message: "No new results found since last run." });
   }
 
-  const summary = await generateBriefing(topic.label, filteredResults);
+  let summary;
+  try {
+    summary = await generateBriefing(topic.label, filteredResults);
+  } catch (err) {
+    return next(err);
+  }
 
   // Include all fetched URLs (not just new ones) so they are skipped on the next run.
   const updatedSeenUrls = [...new Set([...seenUrls, ...results.map((r) => r.url)])];
