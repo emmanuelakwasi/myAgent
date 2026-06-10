@@ -10,7 +10,6 @@ const requestLogger = require("./src/middleware/logger");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 app.use(cors());
 app.use(express.json());
@@ -54,6 +53,18 @@ app.use((err, req, res, next) => {
   res.status(err.status ?? 500).json({ error: err.message });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`myagent-api running on port ${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is busy, retrying...`);
+    setTimeout(() => {
+      server.close();
+      server.listen(PORT);
+    }, 1000);
+  } else {
+    throw err;
+  }
 });
