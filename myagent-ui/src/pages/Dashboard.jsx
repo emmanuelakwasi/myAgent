@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { analyzeCompany, getHistory, compareCompanies } from '../services/api';
 import IntelReport from '../components/IntelReport';
 import CompareView from '../components/CompareView';
+import ThreatTimeline from '../components/ThreatTimeline';
 import { formatTimestamp } from '../utils/format';
 
 export default function Dashboard() {
@@ -264,6 +265,7 @@ export default function Dashboard() {
               </div>
               <h1 className="intel-report-company">{activeReport.company_name}</h1>
             </div>
+            <ThreatTimeline companyName={activeReport.company_name} userId={userId} />
             <IntelReport data={activeReport} />
           </div>
         )}

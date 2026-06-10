@@ -33,6 +33,18 @@ export function extractThreatLevel(text) {
   return match ? match[1] : null;
 }
 
+export const THREAT_COLORS = {
+  LOW: 'var(--accent-green)',
+  MEDIUM: 'var(--accent-yellow)',
+  HIGH: '#FF9F4D',
+  CRITICAL: 'var(--accent-red)',
+};
+
+export function getThreatSeverity(report) {
+  const level = extractThreatLevel(parseSections(report)['THREAT LEVEL']);
+  return level ? THREAT_SEVERITY[level] : null;
+}
+
 export function truncate(str, max) {
   if (!str) return '';
   return str.length > max ? str.slice(0, max) + '…' : str;

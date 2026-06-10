@@ -1,21 +1,14 @@
 import IntelReport from './IntelReport';
-import { parseSections, extractThreatLevel, THREAT_SEVERITY } from '../utils/intelReport';
-
-function getThreat(report) {
-  const sections = parseSections(report);
-  return extractThreatLevel(sections['THREAT LEVEL']);
-}
+import { getThreatSeverity } from '../utils/intelReport';
 
 export default function CompareView({ result }) {
   const { a, b, verdict } = result;
 
-  const threatA = getThreat(a.report);
-  const threatB = getThreat(b.report);
+  const sevA = getThreatSeverity(a.report);
+  const sevB = getThreatSeverity(b.report);
 
   let biggerThreat = null;
-  if (threatA && threatB) {
-    const sevA = THREAT_SEVERITY[threatA];
-    const sevB = THREAT_SEVERITY[threatB];
+  if (sevA != null && sevB != null) {
     if (sevA > sevB) biggerThreat = 'a';
     else if (sevB > sevA) biggerThreat = 'b';
   }

@@ -41,3 +41,8 @@ export const compareCompanies = (companyA, companyB, userId) =>
     company_b: companyB,
     user_id: userId
   }).then(r => r.data);
+
+export const getTimeline = (companyName, userId) =>
+  api.get(`/intel/timeline/${encodeURIComponent(companyName)}`, {
+    params: { user_id: userId }
+  }).then(r => r.data);
