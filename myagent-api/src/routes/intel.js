@@ -115,6 +115,28 @@ router.get('/history/:user_id', async (req, res, next) => {
   }
 });
 
+// GET /intel/timeline/:company_name?user_id=...
+// Past reports for one company, oldest first — powers the threat-level
+// history chart. Degrades to [] on any error (e.g. table not yet created)
+// rather than failing the whole report page.
+router.get('/timeline/:company_name', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('intel_reports')
+      .select('id, created_at, report')
+      .ilike('company_name', req.params.company_name.trim())
+      .eq('user_id', req.query.user_id || 'anonymous')
+      .order('created_at', { ascending: true })
+      .limit(20);
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) {
+    console.error('Timeline lookup failed:', err.message);
+    res.json([]);
+  }
+});
+
 // GET /intel/report/:id
 // Public — returns a single stored report by id, no ownership check.
 // Powers shareable links (myagent.fyi/r/:id).
