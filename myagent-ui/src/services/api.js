@@ -21,3 +21,23 @@ export const runBriefing = (topicId) =>
 
 export const getBriefings = (topicId) =>
   api.get(`/briefings/${topicId}`);
+
+export const analyzeCompany = (companyName, userId, context = '') =>
+  api.post('/intel/analyze', {
+    company_name: companyName,
+    user_id: userId,
+    context
+  }).then(r => r.data);
+
+export const getHistory = (userId) =>
+  api.get(`/intel/history/${userId}`).then(r => r.data);
+
+export const getReport = (id) =>
+  api.get(`/intel/report/${id}`).then(r => r.data);
+
+export const compareCompanies = (companyA, companyB, userId) =>
+  api.post('/intel/compare', {
+    company_a: companyA,
+    company_b: companyB,
+    user_id: userId
+  }).then(r => r.data);

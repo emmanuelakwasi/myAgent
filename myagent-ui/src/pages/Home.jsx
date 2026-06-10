@@ -43,10 +43,10 @@ export default function Home() {
 
       {/* ── Nav ─────────────────────────────────── */}
       <nav className="hp-nav">
-        <span className="hp-nav-brand">
+        <button className="hp-nav-brand" onClick={() => navigate('/')}>
           <span className="live-dot" aria-hidden="true" />
           myagent<span className="accent">.fyi</span>
-        </span>
+        </button>
         <div className="hp-nav-right">
           <button className="hp-nav-link" onClick={scrollToDemo}>See demo</button>
           <button className="hp-nav-cta" onClick={goStart}>Get started →</button>

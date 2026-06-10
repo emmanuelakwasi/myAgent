@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const topicsRouter = require("./src/routes/topics");
 const briefingsRouter = require("./src/routes/briefings");
+const intelRouter = require("./src/routes/intel");
 const requestLogger = require("./src/middleware/logger");
 
 const app = express();
@@ -43,6 +44,7 @@ app.get('/debug/groq', async (req, res) => {
 
 app.use("/topics", topicsRouter);
 app.use("/briefings", briefingsRouter);
+app.use("/intel", intelRouter);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

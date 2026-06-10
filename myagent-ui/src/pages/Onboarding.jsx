@@ -45,6 +45,10 @@ export default function Onboarding() {
       setError('Enter your email to get started.');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError('Enter a valid email address.');
+      return;
+    }
     localStorage.setItem('userId', trimmed);
     navigate(`/dashboard/${encodeURIComponent(trimmed)}`);
   }
